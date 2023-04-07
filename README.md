@@ -5,16 +5,16 @@ Application for car and bike rental
 
 
 Classes: 
-    1. Product
-       2. Car
-       3. Bicycle
-    4. Rental
-    5. Rental Option
-       6. Address rental option
-    7. Address
-    8. User
-    9. Card
-    10. Service class
+1. Product
+2. Car (extends Product)
+3. Bicycle (extends Product)
+4. Rental
+5. RentalOption
+6. AddressRentalOption (extends RentalOption)
+7. Address
+8. User
+9. Card
+10. Service class
 
 
 Actions:
