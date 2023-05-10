@@ -1,19 +1,24 @@
 package model;
 
+import model.option.AddressRentalOption;
 import model.option.RentalOption;
 import model.product.Product;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
+import static model.Address.readNewAddress;
+
 public class Rental implements Comparable<Rental>{
-    Product product;
-    User user;
-    Date startDate, endDate;
-    float totalPrice;
-    RentalOption[] rentalOptions;
-    Address pickUpAddress=null, returnAddress=null;
+    private Product product;
+    private User user;
+    private Date startDate, endDate;
+    private float totalPrice;
+    private ArrayList<RentalOption> rentalOptions = new ArrayList<RentalOption>();
+    private Address pickUpAddress, returnAddress;
 
 
     public Rental(Product product, User user, Date startDate, Date endDate, Address pickUpAddress, Address returnAddress) {
@@ -30,12 +35,29 @@ public class Rental implements Comparable<Rental>{
         this.product.addRental(this);
     }
 
+    public Rental(@NotNull Rental r){
+        this.product = r.product;
+        this.user = r.user;
+        this.startDate = r.startDate;
+        this.endDate = r.endDate;
+        this.pickUpAddress = r.pickUpAddress;
+        this.returnAddress = r.returnAddress;
+        this.totalPrice = r.totalPrice;
+
+        rentalOptions = new ArrayList<RentalOption>();
+        for(RentalOption option: r.getRentalOptions()){
+            this.rentalOptions.add(option);
+        }
+    }
+
+
     // for sorting rentals by startDate in descending order
-    public int compareTo(Rental r){
+    @Override
+    public int compareTo(@NotNull Rental r){
         return -this.startDate.compareTo(r.startDate);
     }
 
-    public float calculateTotal(){
+    private float calculateTotal(){
         float s = this.product.getPrice();
         for(RentalOption o: this.rentalOptions)
             s += o.getPrice();
@@ -43,7 +65,7 @@ public class Rental implements Comparable<Rental>{
         return s;
     }
 
-    public void updateTotalPrice(){
+    private void updateTotalPrice(){
         this.totalPrice = calculateTotal();
     }
 
@@ -103,22 +125,46 @@ public class Rental implements Comparable<Rental>{
         this.returnAddress = returnAddress;
     }
 
+    public ArrayList<RentalOption> getRentalOptions() {
+        return rentalOptions;
+    }
+
+    public void setRentalOptions(ArrayList<RentalOption> rentalOptions) {
+        this.rentalOptions = rentalOptions;
+    }
+
     public void addRentalOption(RentalOption r){
-        // VERIFICA DACA NU AI INTRODUS DEJA ACEA OPTIUNE
+        // check that option doesn't already exist
+        for(RentalOption opt: rentalOptions)
+            if(opt.equals(r)) {
+                System.out.println("The option has already been added.");
+                return;
+            }
 
+        if(r instanceof AddressRentalOption){
+            System.out.println("You need to enter an address for this option: ");
+            Address address = readNewAddress();
+            ((AddressRentalOption) r).setAddress(address);
+        }
 
+        rentalOptions.add(r);
+        System.out.println("The option has been added.");
+    }
 
-        int n=0;
-        if(rentalOptions!=null) n = rentalOptions.length;
+    public void deleteRentalOption(RentalOption r){
+        rentalOptions.remove(r);
+        System.out.println("The option has been removed.");
+    }
 
-        RentalOption[] newRentalOptions = new RentalOption[n + 1];
-
-        System.arraycopy(this.rentalOptions, 0, newRentalOptions, 0, n);
-
-        newRentalOptions[n + 1] = r;
-
-        this.rentalOptions = new RentalOption[n + 1];
-        System.arraycopy(newRentalOptions, 0, this.rentalOptions, 0, n + 1);
+    public void showRentalOptions(){
+        if(rentalOptions.size() == 0) {
+            System.out.println("There are no rental options chosen.");
+        }
+        else{
+            for(int i=0; i<rentalOptions.size(); i++){
+                System.out.println((i+1) + ". " + rentalOptions.get(i));
+            }
+        }
     }
 
     @Override
@@ -126,23 +172,25 @@ public class Rental implements Comparable<Rental>{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Rental rental = (Rental) o;
-        return Float.compare(rental.totalPrice, totalPrice) == 0 && Objects.equals(product, rental.product) && Objects.equals(user, rental.user) && Objects.equals(startDate, rental.startDate) && Objects.equals(endDate, rental.endDate) && Objects.equals(pickUpAddress, rental.pickUpAddress) && Objects.equals(returnAddress, rental.returnAddress);
+        return Float.compare(rental.totalPrice, totalPrice) == 0 && Objects.equals(product, rental.product) && Objects.equals(user, rental.user) && Objects.equals(startDate, rental.startDate) && Objects.equals(endDate, rental.endDate) && Objects.equals(rentalOptions, rental.rentalOptions) && Objects.equals(pickUpAddress, rental.pickUpAddress) && Objects.equals(returnAddress, rental.returnAddress);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(product, user, startDate, endDate, totalPrice, pickUpAddress, returnAddress);
+        return Objects.hash(product, user, startDate, endDate, totalPrice, rentalOptions, pickUpAddress, returnAddress);
     }
 
     @Override
     public String toString() {
-        return "Rental: " +
+        return "Rental{" +
                 "product=" + product +
                 ", user=" + user +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
-                ", totalPrice=" + totalPrice + "\n" +
-                "pickUpAddress: " + pickUpAddress.toString() +
-                "returnAddress=" + returnAddress.toString() + "\n";
+                ", totalPrice=" + totalPrice +
+                ", rentalOptions=" + rentalOptions +
+                ", pickUpAddress=" + pickUpAddress +
+                ", returnAddress=" + returnAddress +
+                '}';
     }
 }

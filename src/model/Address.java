@@ -1,9 +1,14 @@
 package model;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
+import java.util.Scanner;
+
 public class Address {
-    String city;
-    String streetName;
-    int streetNumber;
+    private String city;
+    private String streetName;
+    private int streetNumber;
 
 
     public Address(String city, String streetName, int streetNumber) {
@@ -12,7 +17,7 @@ public class Address {
         this.streetNumber = streetNumber;
     }
 
-    public Address(Address adr) {
+    public Address(@NotNull Address adr) {
         this.city = adr.city;
         this.streetName = adr.streetName;
         this.streetNumber = adr.streetNumber;
@@ -40,5 +45,44 @@ public class Address {
 
     public void setStreetNumber(int streetNumber) {
         this.streetNumber = streetNumber;
+    }
+
+    static public Address readNewAddress(){
+        Scanner sc = new Scanner(System.in);
+
+        String city, streetName;
+        int streetNumber;
+
+        System.out.println("Enter the city: ");
+        city = sc.nextLine();
+        System.out.println("Enter the street name: ");
+        streetName = sc.nextLine();
+        System.out.println("Enter the street number: ");
+        streetNumber = sc.nextInt();
+        sc.nextLine();
+
+        return new Address(city, streetName, streetNumber);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Address address = (Address) o;
+        return streetNumber == address.streetNumber && Objects.equals(city, address.city) && Objects.equals(streetName, address.streetName);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(city, streetName, streetNumber);
+    }
+
+    @Override
+    public String toString() {
+        return "Address{" +
+                "city='" + city + '\'' +
+                ", streetName='" + streetName + '\'' +
+                ", streetNumber=" + streetNumber +
+                '}';
     }
 }

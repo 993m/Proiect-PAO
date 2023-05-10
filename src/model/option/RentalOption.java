@@ -1,16 +1,19 @@
 package model.option;
 
-public class RentalOption {
-    String description;
-    float price;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
+public class RentalOption {
+    protected String description;
+    protected float price;
 
     public RentalOption(String description, float price) {
         this.description = description;
         this.price = price;
     }
 
-    public RentalOption(RentalOption opt) {
+    public RentalOption(@NotNull RentalOption opt) {
         this.description = opt.description;
         this.price = opt.price;
     }
@@ -32,8 +35,23 @@ public class RentalOption {
     }
 
     @Override
-    public String toString() {
-        return "Rental option: " + description + " - " + price + " euros\n";
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RentalOption that = (RentalOption) o;
+        return Float.compare(that.price, price) == 0 && Objects.equals(description, that.description);
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(description, price);
+    }
+
+    @Override
+    public String toString() {
+        return "RentalOption{" +
+                "description='" + description + '\'' +
+                ", price=" + price +
+                '}';
+    }
 }

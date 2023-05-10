@@ -2,17 +2,18 @@ package model.product;
 
 import model.option.RentalOption;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Bicycle extends Product{
-    enum Category {MOUNTAIN_BIKE, HYBRID_BIKE, CITY_BIKE, ROAD_BIKE, KIDS_BIKE, ELECTRIC_BIKE, BMX}
+    private enum Category {MOUNTAIN_BIKE, HYBRID_BIKE, CITY_BIKE, ROAD_BIKE, KIDS_BIKE, ELECTRIC_BIKE, BMX}
 
-    Category category;
-    int wheelSize;
-    String brakeSystem;
+    private Category category;
+    private int wheelSize;
+    private String brakeSystem;
 
 
-    public Bicycle(String name, float price, String manufacturer, String model, RentalOption[] options, Category category, int wheelSize, String brakeSystem) {
+    public Bicycle(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options, Category category, int wheelSize, String brakeSystem) {
         super(name, price, manufacturer, model, options);
         this.category = category;
         this.wheelSize = wheelSize;
@@ -66,9 +67,16 @@ public class Bicycle extends Product{
 
     @Override
     public String toString() {
-        return super.toString() + "Details: " +
+        return "Bicycle{" +
                 "category=" + category +
                 ", wheelSize=" + wheelSize +
-                ", brakeSystem='" + brakeSystem + '\n';
+                ", brakeSystem='" + brakeSystem + '\'' +
+                ", name='" + name + '\'' +
+                ", manufacturer='" + manufacturer + '\'' +
+                ", model='" + model + '\'' +
+                ", price=" + price +
+                ", options=" + options +
+                ", rentals=" + rentals +
+                '}';
     }
 }

@@ -2,27 +2,33 @@ package model.product;
 
 import model.Rental;
 import model.option.RentalOption;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 public class Product {
-    String name, manufacturer, model;
-    float price;
-    RentalOption[] options;
+    protected String name, manufacturer, model;
+    protected float price;
+    protected ArrayList<RentalOption> options = new ArrayList<RentalOption>();
+    protected ArrayList<Rental> rentals = new ArrayList<Rental>();
 
-    Rental[] rentals;
+    public Product(String name, float price, String manufacturer, String model) {
+        this.name = name;
+        this.manufacturer = manufacturer;
+        this.model = model;
+        this.price = price;
+    }
 
-
-    public Product(String name, float price, String manufacturer, String model, RentalOption options[]) {
+    public Product(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options) {
         this.name = name;
         this.manufacturer = manufacturer;
         this.model = model;
         this.price = price;
 
-        this.options = new RentalOption[options.length];
-        System.arraycopy(options, 0, this.options, 0, options.length);
+        this.options = new ArrayList<RentalOption>();
+        for (RentalOption opt : options) {
+            this.options.add(new RentalOption(opt));
+        }
     }
 
     public Product(Product p) {
@@ -30,9 +36,16 @@ public class Product {
         this.manufacturer = p.manufacturer;
         this.model = p.model;
         this.price = p.price;
-        this.options = new RentalOption[p.options.length];
-        System.arraycopy(p.options, 0, this.options, 0, p.options.length);
-        System.arraycopy(p.rentals, 0, this.rentals, 0, p.options.length);
+
+        this.rentals = new ArrayList<Rental>();
+        for (Rental r : p.getRentals()) {
+            this.rentals.add(new Rental(r));
+        }
+
+        this.options = new ArrayList<RentalOption>();
+        for (RentalOption opt : p.getOptions()) {
+            this.options.add(new RentalOption(opt));
+        }
     }
 
     public String getName() {
@@ -67,52 +80,29 @@ public class Product {
         this.price = price;
     }
 
-    public RentalOption[] getOptions() {
+    public ArrayList<RentalOption> getOptions() {
         return options;
     }
 
-    public void setOptions(RentalOption[] options) {
+    public void setOptions(ArrayList<RentalOption> options) {
         this.options = options;
     }
 
-    public Rental[] getRentals() {
+    public ArrayList<Rental> getRentals() {
         return rentals;
     }
 
-    public void setRentals(Rental[] rentals) {
+    public void setRentals(ArrayList<Rental> rentals) {
         this.rentals = rentals;
     }
 
-    public void addOption(RentalOption option){
-        int n=0;
-        if(options!=null) n = options.length;
-
-        RentalOption[] newOptions = new RentalOption[n + 1];
-
-        System.arraycopy(this.options, 0, newOptions, 0, n);
-
-        newOptions[n + 1] = option;
-
-        this.options = new RentalOption[n + 1];
-        System.arraycopy(newOptions, 0, this.options, 0, n + 1);
-
+    public void addOption(RentalOption option) {
+        options.add(option);
     }
 
-    public void addRental(Rental r){
-        int n=0;
-        if(rentals!=null) n = rentals.length;
-
-        Rental[] newRentals = new Rental[n + 1];
-
-        System.arraycopy(this.rentals, 0, newRentals, 0, n);
-
-        newRentals[n + 1] = r;
-
-        this.rentals = new Rental[n + 1];
-        System.arraycopy(newRentals, 0, this.rentals, 0, n + 1);
-
-        //sortare
-        Arrays.sort(rentals);
+    public void addRental(Rental r) {
+        rentals.add(r);
+        Collections.sort(rentals);
     }
 
     @Override
@@ -120,41 +110,51 @@ public class Product {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return Float.compare(product.price, price) == 0 && Objects.equals(name, product.name) && Objects.equals(manufacturer, product.manufacturer) && Objects.equals(model, product.model) && Arrays.equals(options, product.options) && Arrays.equals(rentals, product.rentals);
+        return Float.compare(product.price, price) == 0 && Objects.equals(name, product.name) && Objects.equals(manufacturer, product.manufacturer) && Objects.equals(model, product.model) && Objects.equals(options, product.options) && Objects.equals(rentals, product.rentals);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(name, manufacturer, model, price);
-        result = 31 * result + Arrays.hashCode(options);
-        result = 31 * result + Arrays.hashCode(rentals);
-        return result;
+        return Objects.hash(name, manufacturer, model, price, options, rentals);
     }
 
     @Override
     public String toString() {
-        return "Product: " + name + ' ' + manufacturer + ' ' + model + " - " + price + " euros/day\n";
+        return "Product{" +
+                "name='" + name + '\'' +
+                ", manufacturer='" + manufacturer + '\'' +
+                ", model='" + model + '\'' +
+                ", price=" + price +
+                ", options=" + options +
+                ", rentals=" + rentals +
+                '}';
     }
 
-    public boolean isRentable(Date startDate, Date endDate){
-        if(rentals == null) return true;
+    public boolean isRentable(Date startDate, Date endDate) {
+        if (rentals.size() == 0) return true;
 
         int index;
-        Date rentalStartDate=null, rentalEndDate;
-        for(index = 0; index < rentals.length; index++){
-            rentalStartDate = rentals[index].getStartDate();
-            rentalEndDate = rentals[index].getEndDate();
-            if(startDate.compareTo(rentalStartDate)>0) break;
-            if(endDate.compareTo(rentalEndDate)>0) return false;
+        Date rentalStartDate = null, rentalEndDate;
+        for (index = 0; index < rentals.size(); index++) {
+            rentalStartDate = rentals.get(index).getStartDate();
+            rentalEndDate = rentals.get(index).getEndDate();
+            if (startDate.compareTo(rentalStartDate) > 0) break;
+            if (endDate.compareTo(rentalEndDate) > 0) return false;
         }
 
-        if(rentalStartDate!=null && endDate.compareTo(rentalStartDate)>0) return true;
+        if (rentalStartDate != null && endDate.compareTo(rentalStartDate) > 0) return true;
 
         return false;
     }
 
-    public void showOptions(){
-        for(int i=0; i< options.length; i++)
-            System.out.println(i+1 + options[i].toString());
+    public void showOptions() {
+        if (options.size() == 0) {
+            System.out.println("There are no rental options available.");
+        } else {
+            for (int i = 0; i < options.size(); i++) {
+                System.out.println((i + 1) + ". " + options.get(i));
+            }
+        }
+
     }
 }

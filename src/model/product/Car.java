@@ -2,26 +2,40 @@ package model.product;
 
 import model.option.RentalOption;
 
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class Car extends Product{
-    enum Transmission {AUTOMATIC, MANUAL}
-    enum EngineType {GAS, DIESEL, HYBRID}
-    enum Drivetrain {RWD, FWD, AWD}
-    enum Class {COMPACT, FULL_SIZE, SUV, VAN, ECONOMY, LUXURY}
+    private enum Transmission {AUTOMATIC, MANUAL}
+    private enum EngineType {GAS, DIESEL, HYBRID}
+    private enum Drivetrain {RWD, FWD, AWD}
+    private enum Class {COMPACT, FULL_SIZE, SUV, VAN, ECONOMY, LUXURY}
 
 
-    int seats;
-    Transmission transmission;
-    int horsepower;
-    EngineType engineType;
-    Drivetrain drivetrain;
-    Class carClass;
-    int kmLimit;
-    int speedLimit;
+    private int seats;
+    private Transmission transmission;
+    private int horsepower;
+    private EngineType engineType;
+    private Drivetrain drivetrain;
+    private Class carClass;
+    private int kmLimit;
+    private int speedLimit;
 
 
-    public Car(String name, float price, String manufacturer, String model, RentalOption[] options, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int speedLimit, int kmLimit) {
+    public Car(String name, float price, String manufacturer, String model, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int speedLimit, int kmLimit) {
+        super(name, price, manufacturer, model);
+        this.seats = seats;
+        this.transmission = transmission;
+        this.horsepower = horsepower;
+        this.engineType = engineType;
+        this.drivetrain = drivetrain;
+        this.carClass = carClass;
+        this.speedLimit = speedLimit;
+        this.kmLimit = kmLimit;
+    }
+
+
+    public Car(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int speedLimit, int kmLimit) {
         super(name, price, manufacturer, model, options);
         this.seats = seats;
         this.transmission = transmission;
@@ -125,14 +139,21 @@ public class Car extends Product{
 
     @Override
     public String toString() {
-        return super.toString() + "Details: " +
-                "Number of seats=" + seats +
+        return "Car{" +
+                "seats=" + seats +
                 ", transmission=" + transmission +
                 ", horsepower=" + horsepower +
                 ", engineType=" + engineType +
                 ", drivetrain=" + drivetrain +
                 ", carClass=" + carClass +
-                ", limit of kilometers=" + kmLimit +
-                ", limit of speed=" + speedLimit + "\n";
+                ", kmLimit=" + kmLimit +
+                ", speedLimit=" + speedLimit +
+                ", name='" + name + '\'' +
+                ", manufacturer='" + manufacturer + '\'' +
+                ", model='" + model + '\'' +
+                ", price=" + price +
+                ", options=" + options +
+                ", rentals=" + rentals +
+                '}';
     }
 }
