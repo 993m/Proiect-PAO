@@ -1,30 +1,29 @@
 package model.product;
 
-import model.option.RentalOption;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 public class Bicycle extends Product{
-    private enum Category {MOUNTAIN_BIKE, HYBRID_BIKE, CITY_BIKE, ROAD_BIKE, KIDS_BIKE, ELECTRIC_BIKE, BMX}
+    public enum Category {MOUNTAIN_BIKE, HYBRID_BIKE, CITY_BIKE, ROAD_BIKE, KIDS_BIKE, ELECTRIC_BIKE, BMX}
 
     private Category category;
     private int wheelSize;
     private String brakeSystem;
 
 
-    public Bicycle(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options, Category category, int wheelSize, String brakeSystem) {
-        super(name, price, manufacturer, model, options);
+    public Bicycle(String name, float price, String manufacturer, String model, Category category, int wheelSize, String brakeSystem) {
+        super(name, price, manufacturer, model);
         this.category = category;
         this.wheelSize = wheelSize;
         this.brakeSystem = brakeSystem;
     }
 
-    public Bicycle(Bicycle b) {
-        super(b);
-        this.category = b.category;
-        this.wheelSize = b.wheelSize;
-        this.brakeSystem = b.brakeSystem;
+
+    public Bicycle(Product p, Category category, int wheelSize, String brakeSystem) {
+        super(p);
+        this.category = category;
+        this.wheelSize = wheelSize;
+        this.brakeSystem = brakeSystem;
     }
 
     public Category getCategory() {
@@ -75,8 +74,6 @@ public class Bicycle extends Product{
                 ", manufacturer='" + manufacturer + '\'' +
                 ", model='" + model + '\'' +
                 ", price=" + price +
-                ", options=" + options +
-                ", rentals=" + rentals +
                 '}';
     }
 }

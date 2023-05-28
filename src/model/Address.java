@@ -1,15 +1,22 @@
 package model;
 
 import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 import java.util.Scanner;
 
 public class Address {
+    private int id;
     private String city;
     private String streetName;
     private int streetNumber;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public Address(String city, String streetName, int streetNumber) {
         this.city = city;
@@ -18,6 +25,7 @@ public class Address {
     }
 
     public Address(@NotNull Address adr) {
+        this.id = adr.id;
         this.city = adr.city;
         this.streetName = adr.streetName;
         this.streetNumber = adr.streetNumber;
@@ -47,7 +55,7 @@ public class Address {
         this.streetNumber = streetNumber;
     }
 
-    static public Address readNewAddress(){
+    static public @NotNull Address readNewAddress(){
         Scanner sc = new Scanner(System.in);
 
         String city, streetName;

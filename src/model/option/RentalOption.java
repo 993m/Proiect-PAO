@@ -1,12 +1,20 @@
 package model.option;
 
 import org.jetbrains.annotations.NotNull;
-
 import java.util.Objects;
 
 public class RentalOption {
+    private int id;
     protected String description;
     protected float price;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public RentalOption(String description, float price) {
         this.description = description;
@@ -14,6 +22,7 @@ public class RentalOption {
     }
 
     public RentalOption(@NotNull RentalOption opt) {
+        this.id = opt.id;
         this.description = opt.description;
         this.price = opt.price;
     }

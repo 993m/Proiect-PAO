@@ -1,51 +1,55 @@
 package model.product;
 
+import databaseAccess.RentalCRUD;
+import databaseAccess.RentalOptionCRUD;
 import model.Rental;
 import model.option.RentalOption;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.*;
 
-public class Product {
-    protected String name, manufacturer, model;
+public class Product implements Comparable<Product>{
+    private int id;
+    protected String name;
+    protected String manufacturer;
+    protected String model;
     protected float price;
-    protected ArrayList<RentalOption> options = new ArrayList<RentalOption>();
-    protected ArrayList<Rental> rentals = new ArrayList<Rental>();
+
+
+    private static final RentalCRUD rentalCRUD = RentalCRUD.getInstance();
+    private static final RentalOptionCRUD rentalOptionCRUD = RentalOptionCRUD.getInstance();
+
+    public Product(@NotNull Product p) {
+        this.id = p.id;
+        this.name = p.name;
+        this.manufacturer = p.manufacturer;
+        this.model = p.model;
+        this.price = p.price;
+    }
+
+    @Override
+    public int compareTo(@NotNull Product p){
+        if(this.price < p.getPrice()){
+            return -1;
+        }
+        return 1;
+    }
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public Product(String name, float price, String manufacturer, String model) {
         this.name = name;
         this.manufacturer = manufacturer;
         this.model = model;
         this.price = price;
-    }
-
-    public Product(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options) {
-        this.name = name;
-        this.manufacturer = manufacturer;
-        this.model = model;
-        this.price = price;
-
-        this.options = new ArrayList<RentalOption>();
-        for (RentalOption opt : options) {
-            this.options.add(new RentalOption(opt));
-        }
-    }
-
-    public Product(Product p) {
-        this.name = p.name;
-        this.manufacturer = p.manufacturer;
-        this.model = p.model;
-        this.price = p.price;
-
-        this.rentals = new ArrayList<Rental>();
-        for (Rental r : p.getRentals()) {
-            this.rentals.add(new Rental(r));
-        }
-
-        this.options = new ArrayList<RentalOption>();
-        for (RentalOption opt : p.getOptions()) {
-            this.options.add(new RentalOption(opt));
-        }
     }
 
     public String getName() {
@@ -80,42 +84,19 @@ public class Product {
         this.price = price;
     }
 
-    public ArrayList<RentalOption> getOptions() {
-        return options;
-    }
 
-    public void setOptions(ArrayList<RentalOption> options) {
-        this.options = options;
-    }
-
-    public ArrayList<Rental> getRentals() {
-        return rentals;
-    }
-
-    public void setRentals(ArrayList<Rental> rentals) {
-        this.rentals = rentals;
-    }
-
-    public void addOption(RentalOption option) {
-        options.add(option);
-    }
-
-    public void addRental(Rental r) {
-        rentals.add(r);
-        Collections.sort(rentals);
-    }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return Float.compare(product.price, price) == 0 && Objects.equals(name, product.name) && Objects.equals(manufacturer, product.manufacturer) && Objects.equals(model, product.model) && Objects.equals(options, product.options) && Objects.equals(rentals, product.rentals);
+        return Float.compare(product.price, price) == 0 && Objects.equals(name, product.name) && Objects.equals(manufacturer, product.manufacturer) && Objects.equals(model, product.model);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, manufacturer, model, price, options, rentals);
+        return Objects.hash(name, manufacturer, model, price);
     }
 
     @Override
@@ -125,19 +106,20 @@ public class Product {
                 ", manufacturer='" + manufacturer + '\'' +
                 ", model='" + model + '\'' +
                 ", price=" + price +
-                ", options=" + options +
-                ", rentals=" + rentals +
                 '}';
     }
 
-    public boolean isRentable(Date startDate, Date endDate) {
+    public boolean isRentable(Date startDate, Date endDate) throws SQLException {
+        ArrayList<Rental> rentals = rentalCRUD.getRentalsForProduct(this);
+        Collections.sort(rentals);
+
         if (rentals.size() == 0) return true;
 
         int index;
         Date rentalStartDate = null, rentalEndDate;
-        for (index = 0; index < rentals.size(); index++) {
-            rentalStartDate = rentals.get(index).getStartDate();
-            rentalEndDate = rentals.get(index).getEndDate();
+        for (Rental r: rentals) {
+            rentalStartDate = r.getStartDate();
+            rentalEndDate = r.getEndDate();
             if (startDate.compareTo(rentalStartDate) > 0) break;
             if (endDate.compareTo(rentalEndDate) > 0) return false;
         }
@@ -147,7 +129,11 @@ public class Product {
         return false;
     }
 
-    public void showOptions() {
+
+
+    public void showOptions() throws SQLException {
+        ArrayList<RentalOption> options = rentalOptionCRUD.getAllForProduct(this);
+
         if (options.size() == 0) {
             System.out.println("There are no rental options available.");
         } else {
@@ -155,6 +141,9 @@ public class Product {
                 System.out.println((i + 1) + ". " + options.get(i));
             }
         }
+    }
 
+    public ArrayList<RentalOption> getOptions() throws SQLException {
+        return rentalOptionCRUD.getAllForProduct(this);
     }
 }

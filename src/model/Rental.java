@@ -1,27 +1,34 @@
 package model;
 
+import databaseAccess.AddressCRUD;
+import databaseAccess.AddressRentalOptionCRUD;
+import databaseAccess.RentalOptionCRUD;
 import model.option.AddressRentalOption;
 import model.option.RentalOption;
 import model.product.Product;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Objects;
 
 import static model.Address.readNewAddress;
 
 public class Rental implements Comparable<Rental>{
+    private int id;
     private Product product;
     private User user;
     private Date startDate, endDate;
     private float totalPrice;
-    private ArrayList<RentalOption> rentalOptions = new ArrayList<RentalOption>();
     private Address pickUpAddress, returnAddress;
 
+    private static final RentalOptionCRUD rentalOptionsCRUD = RentalOptionCRUD.getInstance();
+    private static final AddressRentalOptionCRUD addressRentalOptionsCRUD = AddressRentalOptionCRUD.getInstance();
+    private static final AddressCRUD addressCRUD = AddressCRUD.getInstance();
 
-    public Rental(Product product, User user, Date startDate, Date endDate, Address pickUpAddress, Address returnAddress) {
+
+    public Rental(Product product, User user, Date startDate, Date endDate, Address pickUpAddress, Address returnAddress) throws SQLException {
         this.product = product;
         this.user = user;
         this.startDate = startDate;
@@ -30,26 +37,18 @@ public class Rental implements Comparable<Rental>{
         this.returnAddress = returnAddress;
 
         totalPrice = calculateTotal();
-
-        this.user.addRentalToHistory(this);
-        this.product.addRental(this);
     }
 
-    public Rental(@NotNull Rental r){
+    public Rental(@NotNull Rental r) {
+        this.id = r.id;
         this.product = r.product;
         this.user = r.user;
         this.startDate = r.startDate;
         this.endDate = r.endDate;
+        this.totalPrice = r.totalPrice;
         this.pickUpAddress = r.pickUpAddress;
         this.returnAddress = r.returnAddress;
-        this.totalPrice = r.totalPrice;
-
-        rentalOptions = new ArrayList<RentalOption>();
-        for(RentalOption option: r.getRentalOptions()){
-            this.rentalOptions.add(option);
-        }
     }
-
 
     // for sorting rentals by startDate in descending order
     @Override
@@ -57,16 +56,24 @@ public class Rental implements Comparable<Rental>{
         return -this.startDate.compareTo(r.startDate);
     }
 
-    private float calculateTotal(){
+    private float calculateTotal() throws SQLException {
         float s = this.product.getPrice();
-        for(RentalOption o: this.rentalOptions)
+        for(RentalOption o: rentalOptionsCRUD.getAllForRental(this))
             s += o.getPrice();
 
         return s;
     }
 
-    private void updateTotalPrice(){
+    private void updateTotalPrice() throws SQLException {
         this.totalPrice = calculateTotal();
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public Product getProduct() {
@@ -125,46 +132,60 @@ public class Rental implements Comparable<Rental>{
         this.returnAddress = returnAddress;
     }
 
-    public ArrayList<RentalOption> getRentalOptions() {
-        return rentalOptions;
+
+
+
+
+    public void showRentalOptions() throws SQLException {
+        ArrayList<RentalOption> options = rentalOptionsCRUD.getAllForRental(this);
+
+        if(options.size() == 0) {
+            System.out.println("There are no rental options chosen.");
+        }
+        else{
+            for(int i=0; i<options.size(); i++){
+                System.out.println((i+1) + ". " + options.get(i));
+            }
+        }
     }
 
-    public void setRentalOptions(ArrayList<RentalOption> rentalOptions) {
-        this.rentalOptions = rentalOptions;
+    public ArrayList<RentalOption> getOptions() throws SQLException {
+        return rentalOptionsCRUD.getAllForRental(this);
     }
-
-    public void addRentalOption(RentalOption r){
+    public void addRentalOption(RentalOption r) throws SQLException {
         // check that option doesn't already exist
-        for(RentalOption opt: rentalOptions)
-            if(opt.equals(r)) {
+        for(RentalOption opt: rentalOptionsCRUD.getAllForRental(this))
+            if(opt.getId() == r.getId()) {
                 System.out.println("The option has already been added.");
                 return;
             }
 
-        if(r instanceof AddressRentalOption){
+        if(rentalOptionsCRUD.checkIfAddressOption(r)){
             System.out.println("You need to enter an address for this option: ");
             Address address = readNewAddress();
-            ((AddressRentalOption) r).setAddress(address);
+            addressCRUD.add(address);
+            AddressRentalOption newOption = new AddressRentalOption(r, address);
+            addressRentalOptionsCRUD.add(newOption);
+            addressRentalOptionsCRUD.addForRental(newOption, this);
+        }
+        else {
+            rentalOptionsCRUD.addForRental(r, this);
         }
 
-        rentalOptions.add(r);
         System.out.println("The option has been added.");
     }
 
-    public void deleteRentalOption(RentalOption r){
-        rentalOptions.remove(r);
+    public void deleteRentalOption(RentalOption r) throws SQLException{
+        if(r instanceof AddressRentalOption){
+            addressRentalOptionsCRUD.delete(r.getId());
+        }
+
+        rentalOptionsCRUD.deleteForRental(r, this);
         System.out.println("The option has been removed.");
     }
 
-    public void showRentalOptions(){
-        if(rentalOptions.size() == 0) {
-            System.out.println("There are no rental options chosen.");
-        }
-        else{
-            for(int i=0; i<rentalOptions.size(); i++){
-                System.out.println((i+1) + ". " + rentalOptions.get(i));
-            }
-        }
+    public ArrayList<AddressRentalOption> getAddressOptions() throws SQLException {
+        return addressRentalOptionsCRUD.getAllForRental(this);
     }
 
     @Override
@@ -172,12 +193,12 @@ public class Rental implements Comparable<Rental>{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Rental rental = (Rental) o;
-        return Float.compare(rental.totalPrice, totalPrice) == 0 && Objects.equals(product, rental.product) && Objects.equals(user, rental.user) && Objects.equals(startDate, rental.startDate) && Objects.equals(endDate, rental.endDate) && Objects.equals(rentalOptions, rental.rentalOptions) && Objects.equals(pickUpAddress, rental.pickUpAddress) && Objects.equals(returnAddress, rental.returnAddress);
+        return Float.compare(rental.totalPrice, totalPrice) == 0 && Objects.equals(product, rental.product) && Objects.equals(user, rental.user) && Objects.equals(startDate, rental.startDate) && Objects.equals(endDate, rental.endDate) && Objects.equals(pickUpAddress, rental.pickUpAddress) && Objects.equals(returnAddress, rental.returnAddress);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(product, user, startDate, endDate, totalPrice, rentalOptions, pickUpAddress, returnAddress);
+        return Objects.hash(product, user, startDate, endDate, totalPrice, pickUpAddress, returnAddress);
     }
 
     @Override
@@ -188,7 +209,6 @@ public class Rental implements Comparable<Rental>{
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", totalPrice=" + totalPrice +
-                ", rentalOptions=" + rentalOptions +
                 ", pickUpAddress=" + pickUpAddress +
                 ", returnAddress=" + returnAddress +
                 '}';

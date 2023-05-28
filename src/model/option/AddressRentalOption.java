@@ -1,6 +1,7 @@
 package model.option;
 
 import model.Address;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -14,6 +15,11 @@ public class AddressRentalOption extends RentalOption{
     public AddressRentalOption(AddressRentalOption opt) {
         super(opt);
         this.address = opt.address;
+    }
+
+    public AddressRentalOption(@NotNull RentalOption opt, Address address) {
+        super(opt);
+        this.address = address;
     }
 
     public Address getAddress() {
@@ -41,8 +47,8 @@ public class AddressRentalOption extends RentalOption{
     @Override
     public String toString() {
         return "AddressRentalOption{" +
-                "address=" + address +
                 ", description='" + description + '\'' +
+                "address=" + address +
                 ", price=" + price +
                 '}';
     }

@@ -1,23 +1,24 @@
 package model;
 
-import model.option.RentalOption;
-import model.product.Product;
+
+import databaseAccess.CardCRUD;
+import databaseAccess.RentalCRUD;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
+import java.sql.SQLException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.*;
-import java.util.function.Function;
 
 public class User {
+    private int id;
     private String username;
     private String firstName;
     private String lastName;
     private String email;
-    private ArrayList<Rental> rentalHistroy = new ArrayList<Rental>();
-    private ArrayList<Card> cards = new ArrayList<Card>();
+
+
+    private static final CardCRUD cardCRUD = CardCRUD.getInstance();
+    private static final RentalCRUD rentalCRUD = RentalCRUD.getInstance();
 
     public User(String username, String firstName, String lastName, String email) {
         this.username = username;
@@ -26,21 +27,19 @@ public class User {
         this.email = email;
     }
 
-    public User(@NotNull User usr) {
-        this.username = usr.username;
-        this.firstName = usr.firstName;
-        this.lastName = usr.lastName;
-        this.email = usr.email;
+    public User(@NotNull User user){
+        this.id = user.id;
+        this.username = user.username;
+        this.firstName = user.firstName;
+        this.lastName = user.lastName;
+        this.email = user.email;
+    }
+    public int getId() {
+        return id;
+    }
 
-        rentalHistroy = new ArrayList<Rental>();
-        for(Rental r: usr.getRentalHistroy()){
-            this.rentalHistroy.add(new Rental(r));
-        }
-
-        cards = new ArrayList<Card>();
-        for(Card c: usr.getCards()){
-            this.cards.add(new Card(c));
-        }
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getUsername() {
@@ -75,32 +74,28 @@ public class User {
         this.email = email;
     }
 
-    public ArrayList<Rental> getRentalHistroy() {
-        return rentalHistroy;
+
+
+
+    public ArrayList<Rental> getRentalHistory() throws SQLException{
+        return rentalCRUD.getAllForUser(this);
     }
 
-    public ArrayList<Card> getCards() {
-        return cards;
+    public void showRentalHistory() throws SQLException {
+        System.out.println(username + "'s rental history: ");
+        ArrayList<Rental> rentalHistory = getRentalHistory();
+        if(rentalHistory.size()==0) {
+            System.out.println("There is no rental history for this user.");
+        }
+        else {
+            System.out.println(rentalHistory);
+        }
     }
 
-    public void setRentalHistroy(ArrayList<Rental> rentalHistroy) {
-        this.rentalHistroy = rentalHistroy;
-    }
-
-    public void setCards(ArrayList<Card> cards) {
-        this.cards = cards;
-    }
-
-    public void addCard(Card c){
-        cards.add(c);
-        System.out.println("The card was added.");
-        showCards();
-    }
-
-    public ArrayList<Rental> getCancelableRentals(){
-        ArrayList<Rental> rentals = new ArrayList<Rental>();
+    public ArrayList<Rental> getCancelableRentals() throws SQLException{
+        ArrayList<Rental> rentals = new ArrayList<>(0);
         Date currentDate = new Date();
-        for(Rental r: rentalHistroy){
+        for(Rental r: getRentalHistory()){
             if(r.getStartDate().after(currentDate)){
                 rentals.add(r);
             }
@@ -108,8 +103,12 @@ public class User {
         return rentals;
     }
 
-    public Rental selectRentalToCancel(){
+    public Rental selectRentalToCancel() throws SQLException {
         ArrayList<Rental> rentals = getCancelableRentals();
+        if(rentals.size()==0) {
+            System.out.println("You don't have rentals.");
+            return null;
+        }
 
         // show rentals
         System.out.println("These are your current rentals: ");
@@ -132,22 +131,76 @@ public class User {
         return rentals.get(index);
     }
 
-    public void cancelRental(){
-        Rental r = selectRentalToCancel();
-        rentalHistroy.remove(r);
-        r.getProduct().getRentals().remove(r);
+
+
+    public Rental selectRentalToEdit() throws SQLException {
+        ArrayList<Rental> rentals = getCancelableRentals();
+        if(rentals.size()==0) {
+            System.out.println("You don't have rentals.");
+            return null;
+        }
+
+        // show rentals
+        System.out.println("These are your current rentals: ");
+        for(int i=0; i<rentals.size(); i++)
+            System.out.println((i+1) + ". " + rentals.get(i));
+
+        //select rentals
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the index of the rental you want to edit: ");
+        int index = sc.nextInt() - 1;
+        sc.nextLine();
+
+        while(index<0 || index >= rentals.size()){
+            System.out.println("Invalid index entered!");
+            System.out.println("Enter the index of the rental you want to edit: ");
+            index = sc.nextInt() - 1;
+            sc.nextLine();
+        }
+
+        return rentals.get(index);
     }
 
-    public Card selectCard(){
-        showCards();
+    public void cancelRental() throws SQLException {
+        Rental r = selectRentalToCancel();
+        if(r == null) return;
+        rentalCRUD.delete(r.getId());
+        System.out.println("The rental was canceled.");
+    }
+
+    public ArrayList<Card> getCards() throws SQLException{
+        return cardCRUD.getAll(this);
+    }
+
+    public void showCards() throws SQLException{
+        ArrayList<Card> cards = getCards();
+
+        if(cards.size() == 0) {
+            System.out.println("The user does not have any card.");
+        }
+        else{
+            System.out.println(username + "'s list of cards: ");
+            for(int i=0; i<cards.size(); i++)
+                System.out.println((i+1) + ". " + cards.get(i));
+        }
+    }
+
+    public Card selectCard() throws SQLException{
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the index of the card you want to delete: ");
+
+        showCards();
+        ArrayList<Card> cards = getCards();
+        if(cards.size()==0){
+            return null;
+        }
+
+        System.out.println("Enter the index of the card you want to select: ");
         int index = sc.nextInt() - 1;
         sc.nextLine();
 
         while(index<0 || index >= cards.size()){
             System.out.println("Invalid index entered!");
-            System.out.println("Enter the index of the card you want to delete: ");
+            System.out.println("Enter the index of the card you want to select: ");
             index = sc.nextInt() - 1;
             sc.nextLine();
         }
@@ -155,8 +208,12 @@ public class User {
         return cards.get(index);
     }
 
-    public void addRentalToHistory(Rental r){
-        rentalHistroy.add(r);
+    public void deleteCard() throws SQLException {
+        Card card = selectCard();
+        if(card == null) return;
+        cardCRUD.delete(card.getId());
+        System.out.println("The card was removed.");
+        //showCards();
     }
 
     @Override
@@ -166,8 +223,6 @@ public class User {
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", rentalHistroy=" + rentalHistroy +
-                ", cards=" + cards +
                 '}';
     }
 
@@ -176,38 +231,12 @@ public class User {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(username, user.username) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email) && Objects.equals(rentalHistroy, user.rentalHistroy) && Objects.equals(cards, user.cards);
+        return Objects.equals(username, user.username) && Objects.equals(firstName, user.firstName) && Objects.equals(lastName, user.lastName) && Objects.equals(email, user.email);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(username, firstName, lastName, email, rentalHistroy, cards);
+        return Objects.hash(username, firstName, lastName, email);
     }
 
-    public void showRentalHistory(){
-        System.out.println(username + "'s rental history: ");
-        if(rentalHistroy.size()==0) {
-            System.out.println("There is no rental history for this user.");
-        }
-        else {
-            System.out.println(rentalHistroy);
-        }
-    }
-
-    public void showCards(){
-        System.out.println(username + "'s list of cards: ");
-        if(cards.size() == 0) {
-            System.out.println("The user does not have any card.");
-        }
-        else{
-            for(int i=0; i<cards.size(); i++)
-                System.out.println((i+1) + ". " + cards.get(i));
-        }
-    }
-
-    public void deleteCard(Card card) {
-        cards.remove(card);
-        System.out.println("The card was removed.");
-        showCards();
-    }
 }

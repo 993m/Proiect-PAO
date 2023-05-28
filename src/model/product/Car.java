@@ -1,15 +1,14 @@
 package model.product;
 
 import model.option.RentalOption;
-
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class Car extends Product{
-    private enum Transmission {AUTOMATIC, MANUAL}
-    private enum EngineType {GAS, DIESEL, HYBRID}
-    private enum Drivetrain {RWD, FWD, AWD}
-    private enum Class {COMPACT, FULL_SIZE, SUV, VAN, ECONOMY, LUXURY}
+    public enum Transmission {AUTOMATIC, MANUAL}
+    public enum EngineType {GAS, DIESEL, HYBRID}
+    public enum Drivetrain {RWD, FWD, AWD}
+    public enum Class {COMPACT, FULL_SIZE, SUV, VAN, ECONOMY, LUXURY}
 
 
     private int seats;
@@ -36,7 +35,7 @@ public class Car extends Product{
 
 
     public Car(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int speedLimit, int kmLimit) {
-        super(name, price, manufacturer, model, options);
+        super(name, price, manufacturer, model);
         this.seats = seats;
         this.transmission = transmission;
         this.horsepower = horsepower;
@@ -57,6 +56,18 @@ public class Car extends Product{
         this.carClass = car.carClass;
         this.speedLimit = car.speedLimit;
         this.kmLimit = car.kmLimit;
+    }
+
+    public Car(Product p, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int kmLimit, int speedLimit) {
+        super(p);
+        this.seats = seats;
+        this.transmission = transmission;
+        this.horsepower = horsepower;
+        this.engineType = engineType;
+        this.drivetrain = drivetrain;
+        this.carClass = carClass;
+        this.kmLimit = kmLimit;
+        this.speedLimit = speedLimit;
     }
 
     public int getSeats() {
@@ -152,8 +163,6 @@ public class Car extends Product{
                 ", manufacturer='" + manufacturer + '\'' +
                 ", model='" + model + '\'' +
                 ", price=" + price +
-                ", options=" + options +
-                ", rentals=" + rentals +
                 '}';
     }
 }

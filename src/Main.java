@@ -1,13 +1,15 @@
-import model.option.RentalOption;
-import model.product.Car;
-import model.product.Product;
-import service.Service;
-
-import java.text.ParseException;
+import service.ShopService;
 
 public class Main {
     public static void main(String[] args) {
-        Service s = new Service();
-        s.runStartMenu();
+
+        ShopService shopService =  ShopService.getInstance();
+        try{
+            shopService.runStartMenu();
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+
     }
 }
