@@ -66,14 +66,10 @@ public class Bicycle extends Product{
 
     @Override
     public String toString() {
-        return "Bicycle{" +
+        return "Bicycle{" + super.toString() +
                 "category=" + category +
                 ", wheelSize=" + wheelSize +
                 ", brakeSystem='" + brakeSystem + '\'' +
-                ", name='" + name + '\'' +
-                ", manufacturer='" + manufacturer + '\'' +
-                ", model='" + model + '\'' +
-                ", price=" + price +
-                '}';
+                "}";
     }
 }

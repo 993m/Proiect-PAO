@@ -3,6 +3,7 @@ package model;
 
 import databaseAccess.CardCRUD;
 import databaseAccess.RentalCRUD;
+import databaseAccess.UserCRUD;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -16,7 +17,7 @@ public class User {
     private String lastName;
     private String email;
 
-
+    private static final UserCRUD userCRUD = UserCRUD.getInstance();
     private static final CardCRUD cardCRUD = CardCRUD.getInstance();
     private static final RentalCRUD rentalCRUD = RentalCRUD.getInstance();
 
@@ -75,6 +76,48 @@ public class User {
     }
 
 
+    public static String readUsername() throws SQLException{
+        Scanner sc = new Scanner(System.in);
+        String username = null;
+        ArrayList<User> users = userCRUD.getAll();
+
+        while(username == null) {
+            System.out.println("Username: ");
+            username = sc.nextLine();
+            for (User u : users)
+                if (Objects.equals(u.getUsername(), username)) {
+                    System.out.println("This username is taken!");
+                    username = null;
+                    break;
+                }
+        }
+
+        return username;
+    }
+    public static String readEmail() throws SQLException {
+        Scanner sc = new Scanner(System.in);
+        String email = null;
+        ArrayList<User> users = userCRUD.getAll();
+
+        while(email == null){
+            System.out.println("Email: ");
+            email = sc.nextLine();
+
+            if(!email.matches("^(.+)@(.+)$")){
+                System.out.println("This is not a valid email address!");
+                System.out.println("Email: ");
+                email = sc.nextLine();
+            }
+            else for (User u : users)
+                if (Objects.equals(u.getEmail(), email)) {
+                    System.out.println("This email already exist!");
+                    email = null;
+                    break;
+                }
+        }
+
+        return email;
+    }
 
 
     public ArrayList<Rental> getRentalHistory() throws SQLException{
@@ -88,7 +131,9 @@ public class User {
             System.out.println("There is no rental history for this user.");
         }
         else {
-            System.out.println(rentalHistory);
+            for(Rental r: rentalHistory){
+                System.out.println(r);
+            }
         }
     }
 

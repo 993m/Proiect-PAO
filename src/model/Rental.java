@@ -144,16 +144,34 @@ public class Rental implements Comparable<Rental>{
         }
         else{
             for(int i=0; i<options.size(); i++){
-                System.out.println((i+1) + ". " + options.get(i));
+                if(rentalOptionsCRUD.checkIfAddressOption(options.get(i))){
+                    System.out.println((i+1) + ". " + addressRentalOptionsCRUD.get(options.get(i).getId()));
+                }
+                else{
+                    System.out.println((i+1) + ". " + options.get(i));
+                }
             }
         }
+        System.out.println();
     }
 
+    public void showAddressRentalOptions() throws SQLException {
+        ArrayList<AddressRentalOption> options = addressRentalOptionsCRUD.getAllForRental(this);
+
+        if(options.size() == 0) {
+            System.out.println("There are no address rental options chosen.");
+        }
+        else{
+            for(int i=0; i<options.size(); i++){
+                    System.out.println((i+1) + ". " + options.get(i));
+            }
+        }
+        System.out.println();
+    }
     public ArrayList<RentalOption> getOptions() throws SQLException {
         return rentalOptionsCRUD.getAllForRental(this);
     }
     public void addRentalOption(RentalOption r) throws SQLException {
-        // check that option doesn't already exist
         for(RentalOption opt: rentalOptionsCRUD.getAllForRental(this))
             if(opt.getId() == r.getId()) {
                 System.out.println("The option has already been added.");
@@ -165,10 +183,9 @@ public class Rental implements Comparable<Rental>{
             Address address = readNewAddress();
             addressCRUD.add(address);
             AddressRentalOption newOption = new AddressRentalOption(r, address);
-            addressRentalOptionsCRUD.add(newOption);
             addressRentalOptionsCRUD.addForRental(newOption, this);
         }
-        else {
+        else{
             rentalOptionsCRUD.addForRental(r, this);
         }
 
@@ -204,13 +221,13 @@ public class Rental implements Comparable<Rental>{
     @Override
     public String toString() {
         return "Rental{" +
-                "product=" + product +
-                ", user=" + user +
+                "product=" + product.getName() +
+                ", user=" + user.getUsername() +
                 ", startDate=" + startDate +
                 ", endDate=" + endDate +
                 ", totalPrice=" + totalPrice +
                 ", pickUpAddress=" + pickUpAddress +
                 ", returnAddress=" + returnAddress +
-                '}';
+                "}";
     }
 }

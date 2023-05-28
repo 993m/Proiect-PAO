@@ -15,11 +15,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import static model.Card.readNewCard;
+import static model.User.readEmail;
+import static model.User.readUsername;
 
 
 public class ShopService {
@@ -40,7 +41,6 @@ public class ShopService {
     }
 
     private static final UserCRUD userCRUD = UserCRUD.getInstance();
-    private static final  ProductCRUD productCRUD = ProductCRUD.getInstance();
     private static final  CarCRUD carCRUD = CarCRUD.getInstance();
     private static final  BicycleCRUD bicycleCRUD = BicycleCRUD.getInstance();
     private static final  RentalCRUD rentalCRUD = RentalCRUD.getInstance();
@@ -84,6 +84,7 @@ public class ShopService {
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println("1. Log in.");
             System.out.println("2. Sign up.");
             System.out.println("3. View the products.");
@@ -152,54 +153,11 @@ public class ShopService {
         runUserMenu(user);
     }
 
-    private String readUsername() throws SQLException{
-        Scanner sc = new Scanner(System.in);
-        String username = null;
-        ArrayList<User> users = userCRUD.getAll();
-
-        while(username == null) {
-            System.out.println("Username: ");
-            username = sc.nextLine();
-            for (User u : users)
-                if (Objects.equals(u.getUsername(), username)) {
-                    System.out.println("This username is taken!");
-                    username = null;
-                    break;
-                }
-        }
-
-        return username;
-    }
-
-    private String readEmail() throws SQLException {
-        Scanner sc = new Scanner(System.in);
-        String email = null;
-        ArrayList<User> users = userCRUD.getAll();
-
-        while(email == null){
-            System.out.println("Email: ");
-            email = sc.nextLine();
-
-            if(!email.matches("^(.+)@(.+)$")){
-                System.out.println("This is not a valid email address!");
-                System.out.println("Email: ");
-                email = sc.nextLine();
-            }
-            else for (User u : users)
-                if (Objects.equals(u.getEmail(), email)) {
-                    System.out.println("This email already exist!");
-                    email = null;
-                    break;
-                }
-        }
-
-        return email;
-    }
-
     private void runUserMenu(User user) throws SQLException, ParseException, IOException {
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println("1. View all the products.");
             System.out.println("2. View the available products in a given period of time .");
             System.out.println("-------");
@@ -229,10 +187,7 @@ public class ShopService {
                     createRental(user);
                 }
                 case 4 -> {
-                    Rental rental = user.selectRentalToEdit();
-                    if(rental != null) {
-                        runEditRentalMenu(rental);
-                    }
+                    editRental(user);
                 }
                 case 5 -> {
                     cancelRental(user);
@@ -262,16 +217,18 @@ public class ShopService {
 
 
     // USER
-    private void updateUser(@NotNull User user) throws SQLException {
+    private void updateUser(@NotNull User user) throws SQLException, IOException {
         userCRUD.update(user.getId(), runEditProfileMenu(user));
+        audit.log("Update user profile.");
     }
 
     private User runEditProfileMenu(User user) throws SQLException{
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println(user);
-
+            System.out.println();
             System.out.println("1. Change username.");
             System.out.println("2. Change first name.");
             System.out.println("3. Change last name.");
@@ -313,6 +270,13 @@ public class ShopService {
         audit.log("Show rental history for user.");
     }
 
+    private void editRental(@NotNull User user) throws SQLException, IOException {
+        Rental rental = user.selectRentalToEdit();
+        if(rental != null) {
+            runEditRentalMenu(rental);
+        }
+    }
+
     private void cancelRental(@NotNull User user) throws SQLException, IOException {
         user.cancelRental();
         audit.log("Cancel rental.");
@@ -333,8 +297,9 @@ public class ShopService {
         audit.log("Delete a user card.");
     }
 
-    private void deleteUser(@NotNull User user) throws SQLException {
+    private void deleteUser(@NotNull User user) throws SQLException, IOException {
         userCRUD.delete(user.getId());
+        audit.log("Delete user account.");
     }
 
     private void updateCard(@NotNull User user) throws SQLException, ParseException, IOException {
@@ -344,11 +309,15 @@ public class ShopService {
         card.updateCard(runEditCardMenu(card));
     }
 
-
+    private void showUserProfile(User user) throws IOException {
+        System.out.println(user);
+        audit.log("Show user profile.");
+    }
     private @Nullable User runProfileManagementMenu(User user) throws SQLException, IOException {
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println("1. View your profile.");
             System.out.println("2. Edit your profile.");
             System.out.println("3. Delete your account.");
@@ -360,16 +329,13 @@ public class ShopService {
 
             switch(option){
                 case 1 -> {
-                    System.out.println(user);
-                    audit.log("Show user profile.");
+                    showUserProfile(user);
                 }
                 case 2 -> {
-                    updateUser(runEditProfileMenu(user));
-                    audit.log("Update user profile.");
+                    updateUser(user);
                 }
                 case 3 -> {
                     deleteUser(user);
-                    audit.log("Delete user account.");
                     return null;
                 }
                 case 4 -> {
@@ -383,10 +349,19 @@ public class ShopService {
         while(true);
     }
 
+    private void showUserCards(@NotNull User user) throws SQLException {
+        user.showCards();
+    }
+
+    private Card selectUserCard(@NotNull User user) throws SQLException {
+        return user.selectCard();
+    }
+
 
 
     // CARD
     private void runCardsManagementMenu(User user) throws SQLException, ParseException, IOException {
+        System.out.println();
         Scanner sc = new Scanner(System.in);
         int option;
         do{
@@ -428,8 +403,9 @@ public class ShopService {
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println(card);
-
+            System.out.println();
             System.out.println("1. Change number.");
             System.out.println("2. Change expiration date.");
             System.out.println("3. Save and exit.");
@@ -594,7 +570,6 @@ public class ShopService {
     }
 
 
-
     private void createRental(User user) throws SQLException, IOException {
         ArrayList<Date> dates = getRentalPeriod();
         java.util.Date startDate = dates.get(0);
@@ -659,6 +634,39 @@ public class ShopService {
         return locations.get(index);
     }
 
+    private void showProductOptions(@NotNull Product product) throws SQLException, IOException {
+        product.showOptions();
+        audit.log("View extra options for a product.");
+    }
+    private void showRentalOptions(@NotNull Rental rental) throws SQLException, IOException {
+        rental.showRentalOptions();
+        audit.log("View selected options for a rental.");
+    }
+
+    private void addRentalOption(Product product, Rental rental) throws SQLException, IOException {
+        RentalOption opt = selectOptionToAdd(product);
+        if(opt!=null){
+            rental.addRentalOption(opt);
+        }
+        audit.log("Add extra option to a rental.");
+    }
+
+    private void editRentalOption(Rental rental) throws SQLException, IOException {
+        AddressRentalOption opt = selectOptionToEdit(rental);
+        if(opt != null) {
+            opt.setAddress(runEditAddressMenu(opt.getAddress()));
+        }
+        audit.log("Edit rental extra option.");
+    }
+
+    private void deleteRentalOption(Rental rental) throws SQLException, IOException {
+        RentalOption opt = selectOptionToRemove(rental);
+        if(opt!=null){
+            rental.deleteRentalOption(opt);
+        }
+        audit.log("Remove a selected rental option.");
+    }
+
     private void manageRentalOptions(Rental rental, Product product) throws SQLException, IOException {
         System.out.println("It's time to select the rental extra options!");
 
@@ -679,34 +687,19 @@ public class ShopService {
 
             switch(option){
                 case 1 -> {
-                    product.showOptions();
-                    audit.log("View extra options for a product.");
+                    showProductOptions(product);
                 }
                 case 2 -> {
-                    rental.showRentalOptions();
-                    audit.log("View selected options for a rental.");
+                    showRentalOptions(rental);
                 }
                 case 3 -> {
-                    RentalOption opt = selectOptionToAdd(product);
-                    if(opt!=null){
-                        rental.addRentalOption(opt);
-                    }
-                    audit.log("Add extra option to a rental.");
-
+                    addRentalOption(product, rental);
                 }
                 case 4 -> {
-                    AddressRentalOption opt = selectOptionToEdit(rental);
-                    if(opt != null) {
-                        opt.setAddress(runEditAddressMenu(opt.getAddress()));
-                    }
-                    audit.log("Edit rental extra option.");
+                    editRentalOption(rental);
                 }
                 case 5 -> {
-                    RentalOption opt = selectOptionToRemove(rental);
-                    if(opt!=null){
-                        rental.deleteRentalOption(opt);
-                    }
-                    audit.log("Remove a selected rental option.");
+                    deleteRentalOption(rental);
                 }
                 case 6 -> {
                     return;
@@ -723,8 +716,9 @@ public class ShopService {
         Scanner sc = new Scanner(System.in);
         int option;
         do{
+            System.out.println();
             System.out.println(a);
-
+            System.out.println();
             System.out.println("1. Change city.");
             System.out.println("2. Change street name.");
             System.out.println("3. Change street number.");
@@ -803,19 +797,19 @@ public class ShopService {
     }
 
     private @Nullable AddressRentalOption selectOptionToEdit(@NotNull Rental rental) throws SQLException {
-        System.out.println("These are the chosen extra options for this rental: ");
-        rental.showRentalOptions();
+        System.out.println("These are the chosen extra options that you can edit: ");
+        rental.showAddressRentalOptions();
         ArrayList<AddressRentalOption> options = rental.getAddressOptions();
         if(options.size()==0) return null;
 
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the index of the option you want to remove: ");
+        System.out.println("Enter the index of the option you want to edit: ");
         int index = sc.nextInt() - 1;
         sc.nextLine();
 
         while(index<0 || index >= options.size()){
             System.out.println("Invalid index entered!");
-            System.out.println("Enter the index of the option you want to remove: ");
+            System.out.println("Enter the index of the option you want to edit: ");
             index = sc.nextInt() - 1;
             sc.nextLine();
         }
@@ -849,10 +843,10 @@ public class ShopService {
 
                 switch(option){
                     case 1 -> {
-                        user.showCards();
+                        showUserCards(user);
                     }
                     case 2 -> {
-                        card = user.selectCard();
+                        card = selectUserCard(user);
                     }
                     case 3 -> {
                         addCard(user);
@@ -874,6 +868,7 @@ public class ShopService {
 
         return card;
     }
+
 
 
     private void changeRentalPeriod(@NotNull Rental rental) throws SQLException, IOException {
@@ -905,14 +900,23 @@ public class ShopService {
         System.out.println("Changes were successfully saved!");
     }
 
+    private void changeProduct(@NotNull Rental rental) throws SQLException, IOException {
+        Product product = getProduct(rental.getStartDate(), rental.getEndDate());
+
+        if(product != null){
+            rental.setProduct(product);
+            //TODO: something with old selected rental options
+        }
+    }
 
     private Rental runEditRentalMenu(Rental rental) throws SQLException, IOException {
         Scanner sc = new Scanner(System.in);
 
         int option;
         do{
+            System.out.println();
             System.out.println(rental);
-
+            System.out.println();
             System.out.println("1. Change product.");
             System.out.println("2. Change the rental period.");
             System.out.println("3. Change pick-up address.");
@@ -927,12 +931,7 @@ public class ShopService {
 
             switch(option){
                 case 1 -> {
-                    Product product = getProduct(rental.getStartDate(), rental.getEndDate());
-
-                    if(product != null){
-                        rental.setProduct(product);
-                        //remove all selected rental options
-                    }
+                    changeProduct(rental);
                 }
                 case 2 -> {
                     changeRentalPeriod(rental);

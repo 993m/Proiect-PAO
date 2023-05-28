@@ -54,7 +54,7 @@ public class AddressRentalOptionCRUD implements CRUD<AddressRentalOption> {
 
     @Override
     public AddressRentalOption get(int id) throws SQLException {
-        String sqlQuery = "SELECT * FROM addressoption WHERE idAddressOption=?";
+        String sqlQuery = "SELECT * FROM `addressoption` JOIN `option` ON option.idOption=idAddressOption WHERE `idAddressOption`=?";
         PreparedStatement pstmt = DatabaseConnection.getConnection().prepareStatement(sqlQuery);
         pstmt.setInt(1, id);
         ResultSet rs = pstmt.executeQuery();
@@ -76,11 +76,11 @@ public class AddressRentalOptionCRUD implements CRUD<AddressRentalOption> {
         ArrayList<AddressRentalOption> options = new ArrayList<>(0);
         String sqlQuery = "SELECT * FROM `addressoption`"+
                 "JOIN `rental_option` ON rental_option.option_id=addressoption.idAddressOption" +
+                " JOIN `option` ON option.idOption=addressoption.idAddressOption" +
                 " WHERE `rental_id`=?";
         PreparedStatement pstmt = DatabaseConnection.getConnection().prepareStatement(sqlQuery);
         pstmt.setInt(1, rental.getId());
         ResultSet rs = pstmt.executeQuery();
-        rs.next();
         while(rs.next())
             options.add(mapResultSet(rs));
         return options;
@@ -96,7 +96,7 @@ public class AddressRentalOptionCRUD implements CRUD<AddressRentalOption> {
     }
 
     @Override
-    public void update(int id, AddressRentalOption updatedOption) throws SQLException {
+    public void update(int id, @NotNull AddressRentalOption updatedOption) throws SQLException {
         String sqlQuery = "UPDATE `addressoption` SET `address_id`=? WHERE `idAddressOption`=?";
         PreparedStatement pstmt = DatabaseConnection.getConnection().prepareStatement(sqlQuery);
         pstmt.setInt(1, updatedOption.getAddress().getId());

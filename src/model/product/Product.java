@@ -141,6 +141,7 @@ public class Product implements Comparable<Product>{
                 System.out.println((i + 1) + ". " + options.get(i));
             }
         }
+        System.out.println();
     }
 
     public ArrayList<RentalOption> getOptions() throws SQLException {

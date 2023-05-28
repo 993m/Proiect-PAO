@@ -121,7 +121,6 @@ public class Card {
         return "Card{" +
                 "number='" + number + '\'' +
                 ", expDate=" + expDate +
-                ", user=" + user +
                 '}';
     }
 }

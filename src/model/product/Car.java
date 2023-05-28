@@ -150,7 +150,7 @@ public class Car extends Product{
 
     @Override
     public String toString() {
-        return "Car{" +
+        return "Car{" + super.toString() +
                 "seats=" + seats +
                 ", transmission=" + transmission +
                 ", horsepower=" + horsepower +
@@ -159,10 +159,6 @@ public class Car extends Product{
                 ", carClass=" + carClass +
                 ", kmLimit=" + kmLimit +
                 ", speedLimit=" + speedLimit +
-                ", name='" + name + '\'' +
-                ", manufacturer='" + manufacturer + '\'' +
-                ", model='" + model + '\'' +
-                ", price=" + price +
-                '}';
+                "}";
     }
 }

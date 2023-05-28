@@ -82,7 +82,6 @@ public class RentalOptionCRUD implements  CRUD<RentalOption>{
     public RentalOption mapResultSet(@NotNull ResultSet rs) throws SQLException {
         RentalOption option = new RentalOption(rs.getString("description"), rs.getFloat("price"));
         option.setId(rs.getInt("idOption"));
-
         return option;
     }
 
@@ -93,19 +92,17 @@ public class RentalOptionCRUD implements  CRUD<RentalOption>{
 
     public ArrayList<RentalOption> getAllForRental(@NotNull Rental rental) throws SQLException {
         ArrayList<RentalOption> options = new ArrayList<>(0);
-        String sqlQuery = "SELECT * FROM `option` JOIN `rental_option` ON option.idOption=rental_option.option_id\n JOIN `addressoption` ON rental_option.option_id=addressoption.idAddressOption\n WHERE `rental_id`=?";
+        String sqlQuery = "SELECT * FROM `option` " +
+                "JOIN `rental_option` ON option.idOption=rental_option.option_id" +
+                " WHERE `rental_id`=?";
         PreparedStatement pstmt = DatabaseConnection.getConnection().prepareStatement(sqlQuery);
         pstmt.setInt(1, rental.getId());
         ResultSet rs = pstmt.executeQuery();
 
-        AddressRentalOptionCRUD addressRentalOptionCRUD = AddressRentalOptionCRUD.getInstance();
         while(rs.next())
-            try{
-                options.add(addressRentalOptionCRUD.mapResultSet(rs));
-            }
-            catch(SQLException e){
+        {
                 options.add(mapResultSet(rs));
-            }
+        }
 
         return options;
     }
@@ -119,7 +116,6 @@ public class RentalOptionCRUD implements  CRUD<RentalOption>{
         pstmt.setInt(1, product.getId());
         ResultSet rs = pstmt.executeQuery();
 
-        AddressRentalOptionCRUD addressRentalOptionCRUD = AddressRentalOptionCRUD.getInstance();
         while(rs.next())
         {
             options.add(mapResultSet(rs));
@@ -134,14 +130,6 @@ public class RentalOptionCRUD implements  CRUD<RentalOption>{
         pstmt.setInt(1, option.getId());
         ResultSet rs = pstmt.executeQuery();
 
-
-        int rowCount=0;
-        while(rs.next()){
-            rowCount++;
-        }
-        if(rowCount>0){
-            return true;
-        }
-        return false;
+        return rs.next();
     }
 }
