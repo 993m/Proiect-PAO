@@ -38,7 +38,7 @@ public class ProductCRUD implements CRUD<Product> {
         rs.next();
         return mapResultSet(rs);
     }
-
+/*
     @Override
     public ArrayList<Product> getAll() throws SQLException {
         ArrayList<Product> products = new ArrayList<>(0);
@@ -46,6 +46,21 @@ public class ProductCRUD implements CRUD<Product> {
         ResultSet rs = DatabaseConnection.getConnection().createStatement().executeQuery(sqlQuery);
         while(rs.next())
             products.add(mapResultSet(rs));
+        return products;
+    }
+ */
+    @Override
+    public ArrayList<Product> getAll() throws SQLException {
+        ArrayList<Product> products = new ArrayList<>(0);
+
+        // cars
+        CarCRUD carCRUD = CarCRUD.getInstance();
+        products.addAll(carCRUD.getAll());
+
+        // bikes
+        BicycleCRUD bicycleCRUD = BicycleCRUD.getInstance();
+        products.addAll(bicycleCRUD.getAll());
+
         return products;
     }
 

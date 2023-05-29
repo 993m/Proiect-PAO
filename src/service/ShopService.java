@@ -45,28 +45,27 @@ public class ShopService {
     private static final  BicycleCRUD bicycleCRUD = BicycleCRUD.getInstance();
     private static final  RentalCRUD rentalCRUD = RentalCRUD.getInstance();
     private static final  AddressCRUD addressCRUD = AddressCRUD.getInstance();
+    private static final  ProductCRUD productCRUD = ProductCRUD.getInstance();
 
 
     private static void showProducts() throws SQLException, IOException {
-        int type = getProductType();
-        PriorityQueue<Product> products = new PriorityQueue<>(1, (Product p1, Product p2) -> p1.compareTo(p2));
-        if(type == 1) {
-            products.addAll(carCRUD.getAll());
-        }
-        else {
-            products.addAll(bicycleCRUD.getAll());
-        }
+        //int type = getProductType();
+        PriorityQueue<Product> products = new PriorityQueue<>(1, Product::compareTo);
+
+        products.addAll(productCRUD.getAll());
 
         if(products.size() == 0){
             System.out.println("There are no products.");
+            return;
         }
         else{
-            for(int i=0; i<products.size(); i++){
-                System.out.println((i+1) + ". " + products.poll());
+            int i=0;
+            while(!products.isEmpty()){
+                System.out.println((++i) + ". " + products.poll());
             }
         }
 
-        audit.log("Show products.");
+        audit.log("Show all products.");
     }
     private static void showLocations() throws SQLException{
         ArrayList<Address> locations = addressCRUD.getAll();

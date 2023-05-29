@@ -33,19 +33,6 @@ public class Car extends Product{
         this.kmLimit = kmLimit;
     }
 
-
-    public Car(String name, float price, String manufacturer, String model, ArrayList<RentalOption> options, int seats, Transmission transmission, int horsepower, EngineType engineType, Drivetrain drivetrain, Class carClass, int speedLimit, int kmLimit) {
-        super(name, price, manufacturer, model);
-        this.seats = seats;
-        this.transmission = transmission;
-        this.horsepower = horsepower;
-        this.engineType = engineType;
-        this.drivetrain = drivetrain;
-        this.carClass = carClass;
-        this.speedLimit = speedLimit;
-        this.kmLimit = kmLimit;
-    }
-
     public Car(Car car) {
         super(car);
         this.seats = car.seats;

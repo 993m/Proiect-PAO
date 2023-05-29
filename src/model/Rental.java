@@ -171,6 +171,7 @@ public class Rental implements Comparable<Rental>{
     public ArrayList<RentalOption> getOptions() throws SQLException {
         return rentalOptionsCRUD.getAllForRental(this);
     }
+
     public void addRentalOption(RentalOption r) throws SQLException {
         for(RentalOption opt: rentalOptionsCRUD.getAllForRental(this))
             if(opt.getId() == r.getId()) {
