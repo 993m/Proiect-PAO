@@ -1,8 +1,6 @@
-# Proiect-PAO
- 
-Application for car and bike rental
+# Application for car and bike rental
 
-
+### Advanced object-oriented programming project
 
 Classes: 
 1. Product
